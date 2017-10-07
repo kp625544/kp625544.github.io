@@ -53,7 +53,7 @@
 			    	<img class="img-intro" src="img/avatar.png" alt="">
 			    </div>
 			    <div class="unit-90">
-			    	<p class="p-intro">Hello, I’m Hydra. I’m proud to be a part of security community.</p>
+			    	<p class="p-intro">Hello, I’m Hydra. I welcome you here!</p>
 			    </div>
 			</div>
 		</div>
@@ -65,27 +65,39 @@
 			<!-- Post -->
 			<div class="post">
 				<!-- Heading -->
-				<a href="#"><h1>Galaxy is on your hand</h1></a>
+				<h1>The Three Tier Architecture</h1></a>
 				<hr>
 				<div class="in-content">
 					<p>
-						Saturn has a prominent ring system that consists of nine continuous main rings and three discontinuous arcs, composed mostly of ice particles with a smaller amount of rocky debris and dust. Sixty-two known moons orbit the planet, of which fifty-three are officially named. This does not include the hundreds of "moonlets" comprising the rings.
+            I m basically interested in the security domain so basically most of my posts will be revolve around security.
+            I have seen many blogs emerging nowadays but very few write about the fundamentals of web and how it works because I have still seen many emerging bug hunters to have been working on hit and trial.
+            My aim here will be to give a detailing about how the web architecture works. I ll try to write as much as possible on my own and try to give appropriate credits where felt necessary. As these blogs will be in my own words it ll be nice if you give a feedback in the email mentioned in the bottom as this will let me improve the quality of the blogs. So let's start now!
 					</p>
-					<a class="read-more" href="#">Read more</a>
-				</div>
-				<div class="foot-post">
-					<div class="units-row">
-					    <div class="unit-100">
-					    	<strong>Tags:</strong>
-					    	<a href="#">Galaxy</a>,
-					    	<a href="#">Human</a>,
-					    	<a href="#">World</a>,
-					    </div>
-					    <div class="unit-100">
-					    	<strong>COMMENTS:</strong>
-					    	<a href="#">3</a>
-					    </div>
-					</div>
+          <p>
+            This first article is on the three tier architecture. We will call it TTA for convenience. So what's the TTA?
+            Definition: A three-tier architecture is a client-server architecture in which the functional process logic, data access, computer data storage and user interface are developed and maintained as independent modules on separate platforms.
+            This is the definition we get when we first Google the three tier architecture. So what is it?
+          </p>
+          <p>
+            So basically the three tier architecture works in this way:
+          </p>
+          <p>
+            1. There is a database
+            2. ‎There is a application server
+            3. ‎There is a client
+          </p>
+          <p>
+            So what happens behind the scene is
+            1. There is a web server like Apache, Nginx which can convert the server side code to client side code
+            2. ‎Now why is it necessary? Because languages like PHP, asp.net are server side languages.
+            3. ‎Now the question is what is a server side language and why is it necessary?
+            4. ‎So basically the client (in most cases the web browser) understands only Markup languages (like Html) , css, JavaScript. Also for security reasons the web developer might not want to reveal the code, entire web logic etc.
+            5. ‎So in a gist; HTML, CSS, JAVASCRIPT are fundamentally front end languages and are only needed to view in the browser or any graphical user interface. So next time when you think why do they show source code in browser isn't it a security confidentiality breach? Remember the browser source code is just the code which the browser used to understand what it has to show you in the GUI and may not in most cases reveal anything important about the architecture. Also JavaScript is basically a front end language ( although many server side language also use it in backend but that's a discussion for another day) so any cross site scripting you may achieve in a site may at maximum result in remote code execution on the client side and the server maybe totally be proofed from it.
+            6. ‎Now the third part is the database. The database is where the data is stored by the SERVER. Now the web architecture should and in most cases works in a way where only an server can interact with the database. So basically any front end/ client side attacks can hardly harm the database.
+          </p>
+          <p>
+            So this is how the three tier architecture works. In future blogs I ll try to explain why this is necessary? So keep looking this space for more stuff. Until then goodbye :)
+          </p>
 				</div>
 			</div>
 			<!-- /post -->
