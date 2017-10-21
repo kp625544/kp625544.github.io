@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Not just another security blog!</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Saturn is free PSD &amp; ">
+    <meta name="author" content="Hydra Kazuya Zinnober">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/kube.min.css" />
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <link rel="stylesheet" href="css/custom.min.css" />
+    <link rel="shortcut icon" href="img/favicon.png" />
+    <link href="css/Lato.css" rel="stylesheet" type="text/css">
+    <link href="css/open_sans.css" rel="stylesheet" type="text/css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-107740184-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-107740184-1');
+    </script>
+</head>
+<body>
+	<!-- Navigation -->
+	<div class="main-nav">
+		<div class="container">
+			<header class="group top-nav">
+				<nav class="navbar logo-w navbar-left" >
+					<a class="logo" href="index.html">Home</a>
+				</nav>
+				<!-- <div class="navigation-toggle" data-tools="navigation-toggle" data-target="#navbar-1">
+				    <span class="logo">Saturn</span>
+				</div>
+			    <nav id="navbar-1" class="navbar item-nav navbar-right">
+				    <ul>
+				        <li class="active"><a href="index.html">Home</a></li>
+				    </ul>
+				</nav> -->
+			</header>
+		</div>
+	</div>
+
+	<!-- Introduction -->
+	<div class="intro">
+		<div class="container">
+			<div class="units-row">
+			    <div class="unit-10">
+			    	<img class="img-intro" src="img/avatar.png" alt="">
+			    </div>
+			    <div class="unit-90">
+			    	<p class="p-intro">Hello, I’m Hydra. I welcome you to my second blog!</p>
+			    </div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content -->
+	<div class="content">
+		<div class="container">
+			<!-- Post -->
+			<div class="post">
+				<!-- Heading -->
+				<h1>The overview of Networking!</h1></a>
+				<hr>
+				<div class="in-content">
+					<p>
+            Hello guys! I m back with my second post. Sorry for the late post as for the past few days I was suffering from some health issues. I hope you enjoy this post. :)
+            Also special thanks to <a href="https://twitter.com/IsrSahilMk">Sahil Tembhare</a> for helping out with this post!
+          </p>
+          <p>
+            First thing we need to understand while learning basic networking is routing, switching, how the packet move from place to another on the internet and what are the protocols governing them.
+            So a router is something which connects various networks while a switch is something which lets you communicate to devices ON the network. Let me explain this with an example:
+
+          </p>
+          <img src="img/Network-1.jpg" alt="">
+          <p>
+            As the image above says each of your end devices in your regular use is connected to a switch which is then connected to the router which routes you to the internet. This basically means a switch creates a network for devices on the same network to talk to each other while a router connects various network.
+            Now why is it needed? So that any end device from the internet which does not have route to your network cannot access your end device. That’s like saying if you host a web server locally it cannot be accessed by your friend directly on other network unless you explicitly allow to do so!
+          </p>
+          <p>
+            Also the thing here to notice is that the network which allows end devices to connect to each other is called the Internal Network. Now the Internet or External network can be said as anything which is accessible by the public in general!
+          </p>
+          <p>
+            Let’s get acquainted with some of the popular networking terms! </p>
+            <p>
+              <ul>
+
+                <li>Subnet mask: A Subnet mask is a 32-bit number that masks an IP address, and divides the IP address into network address and host address. Example <strong> In decimal notation:</strong></li>
+                <ul>
+                  <li>IP address       192.168.1.10</li>
+                  <li>Subnet mask      255.255.255.0</li>
+                  Network address is 192.168.1 and host address is 10.
+                </ul>
+
+                <li>Vlan: A virtual LAN is used to divide a single network into private networks to imbibe privacy in the network. The difference between vlan and subnet mask is that vlan divides a network where as subnet is used to identify the network.</li>
+                <li>Unicast: Unicast routing is the process of forwarding unicasted traffic from a source to a destination on an internetwork. Unicasted traffic is destined for a unique address.</li>
+                <li>Multicast: Multicast IP Routing protocols are used to distribute data (for example, audio/video streaming broadcasts) to multiple recipients. Using multicast, a source can send a single copy of data to a single multicast address, which is then distributed to an entire group of recipients.</li>
+                <li>Broadcast: Delivering a packet sent from a source node to all other nodes in the network.</li>
+                <li>Private IP addresses: A private IP address is an IP address that's reserved for internal use behind a router or other devices which use Network address translation. The following are the private IP address range</li>
+                    <ul>
+                      <li>10.0.0.0 to 10.255.255.255</li>
+
+                      <li>172.16.0.0 to 172.31.255.255</li>
+
+                      <li>192.168.0.0 to 192.168.255.255</li>
+
+                    </ul>
+            </ul>
+          </p>
+          <p>
+            Ok now let’s come talk about interfaces on a networking device. So what’s that about? You must have seen many times that a device has more than one IP address so how does that work?
+            So the following network flow occurs when you try to connect to the internet:
+            <ul>
+              <li>You type a domain name or IP in your browser.</li>
+              <li>Your browser requests the packet to be passed to your switch </li>
+              <li>Now here comes the main part! when the packet arrives at the switch it arrives at the interface which is connected to your end device.</li>
+              <li>Now for the same switch to forward the packet to the router it has to change its interface and to that of the router</li>
+
+            </ul>
+          </p>
+          <p>
+          What is DNS?
+          </p>
+          <p>
+            It is very hard for humans to remember numbers(IP) for each website! DNS stands for Doman Name Servers, it is used for binding a fully qualified domain name to an IP address. DNS are the Internet’s equivalent of a phone book which contains the domain names and their IP addresses.
+            DNS can have multiple IP records for any domain which is generally used for Load Balancing purposes.
+            So, when you enter any any URL in your browser and hit enter then the request goes to the DNS Server using your device configured appropriate DNS Server IP and then the DNS Server lookup for the domain that you’ve requested for. Then the DNS Server resolves the domain name to the IP and then DNS Server answers the request with appropriate IP of domain which client have requested. After the client device gets the resolved IP of his requested domain, device goes to that IP for the connection.
+          </p>
+          <img src="DNS.jpg" alt="">
+          <p>
+            <strong>Canonical Name Record (CNAME)</strong>
+            Cname record is an alias of another domain, which means you can give multiple names to a single IP. Example:
+            <ul>
+              <li>$ nslookup kp62544.github.io</li>
+              <li>
+                Server:		127.0.1.1
+                Address:	127.0.1.1#53
+
+                Non-authoritative answer:
+                kp62544.github.io	canonical name = sni.github.map.fastly.net.
+                Name:	sni.github.map.fastly.net
+                Address: 151.101.37.147
+              </li>
+            </ul>
+          </p>
+          <p>
+            Some of the things I m not able to cover here are CIDR notations, RFC's, subnetting in detail and DHCP.
+            <a href="https://cybrary.it">Cybrary</a> has a very good resource on Networking with good videos to learn networking in detail. Beginners should surely check it out!
+          </p>
+				</div>
+			</div>
+			<!-- /post -->
+		</div>
+	</div>
+
+  <footer>
+		<div class="container">
+			<div class="units-row">
+			    <div class="unit-50">
+					<ul class="social list-flat right">
+						<li><a href="mailto:kaushal.parikh1995@gmail.com"><i class="fa fa-send"></i></a></li>
+						<li><a href="http://twitter.com/kp625544"><i class="fa fa-twitter"></i></a></li>
+						<li><a href="http://facebook.com/kp625544"><i class="fa fa-dribbble"></i></a></li>
+					</ul>
+			    </div>
+			</div>
+			<p class="text-centered foot-cp">
+	    		<a href="#">Post by @hydra</a>
+	    	</p>
+		</div>
+	</footer>
+
+	<!-- Javascript -->
+	<script src="js/jquery.min.js"></script>
+    <script src="js/kube.min.js"></script>
+</body>
+</html>
