@@ -62,7 +62,7 @@
             If you think you already know what is xss you might even want to stop reading further!
 					</p>
           <p>
-            So let's start! What is xss? Cross Site Scripting or xss is a client side attack. It occurs when a input is accepted from the user and is shown as it is without proper cleansing and validations. <br>
+            So let's start! What is xss? <b>Cross Site Scripting</b> or xss is a client side attack that is an attacker can control <b>victims client</b> (browser in most cases). It occurs when a input is accepted from the user and is shown as it is without proper cleansing and validations. <br>
             Now why does this occur? It occurs mainly because developers try to dynamically generate the HTML code (because the browser only understand HTML, JavaScript and CSS) so in this effort they sometimes forget that a malicious user may input something which when used as it is  might manipulate the code so as to change the HTML interpretation for the victims browser and may inject malicious JavaScript! <br>
 
           </p>
@@ -129,12 +129,13 @@
           <p>
             There are three major types of XSS attacks: <br>
             <ol>
-              <li>Persistent XSS: where the malicious input is stored in a database permanently or the attacker finds a way such that attacker controlled JavaScript file is included by the victims website and is therefore executed by the websites user.
+              <li>Persistent XSS: where the malicious input/payload is stored in a database permanently and when a normal user accesses the website it injects the payload in the victims browser <br> or the attacker finds a way such that attacker controlled JavaScript file is included by the victims website and is therefore executed by the websites user.
               <br> <img src="stored-xss.jpg" ></li> <br>
 
               <li>Reflected XSS: where the user is sent some links which when clicked triggers an xss <br> <img src="reflected-xss.png"></li> <br>
 
               <li>DOM-based XSS: where the javascript code is manipulated to inject attackers xss code. <br> <img src="dom-based-xss.png"></li> <br>
+              <li>Blind XSS: In this case the attacker might not know if the malicious payload is executed or not but still might affect the victim. Ex: Contact forms.</li>
             </ol>
           </p>
           <p>
@@ -145,6 +146,9 @@
               <li>Another case is attacker can steal the victims cookies and send it to attacker controlled site!</li>
               <li>Attacker can manipulate the document object model and can possibly lead to virtual defacement</li>
               <li>Can possibly fill or send forms on the behalf of the victim!</li>
+              <li>Can affect the admin which may lead the admin to perform abnormal actions</li>
+              <li>I have also seen scenarios where the client is also a database(like phpmyadmin) so in this case SQL injection is also possible</li>
+              <li>A classic example of XSS to Remote Code execution can be found <a href="https://oreoshake.github.io/xss/rce/bugbounty/2015/09/08/xss-to-rce.html" target="_blank">here</a> where the flaw is in the faulty client!</li>
             </ul>
           </p>
           <p>Ok so that's it for now. I would like to mention <a href="http://securityidiots.com/Web-Pentest/XSS/xss.series-by-securityidiots.html"> Security Idiots</a> who have some really nice blogs to study xss in depth.</p>
