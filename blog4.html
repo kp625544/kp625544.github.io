@@ -87,10 +87,13 @@
             <code>
               set-cookie: TestCookie=Hydra1234; expires=Thu, 21-Dec-2017 14:50:04 GMT; Max-Age=3600; path=/; domain=.hydraz.me; secure; HttpOnly
             </code>
+            Some details about the cookie values
+            <ul>
+              <li><b>domain:</b>The (sub)domain that the cookie is available to. Setting this to a domain other than the current domain name will effectively make the cookie invalid.</li>
+              <li><b>secure:</b>Indicates that the cookie should only be transmitted over a secure HTTPS connection from the client. When set to TRUE, the cookie will only be set if a secure connection exists.</li>
+              <li><b>httponly:</b> When TRUE the cookie will be made accessible only through the HTTP protocol. This means that the cookie won't be accessible by scripting languages, such as JavaScript. It has been suggested that this setting can effectively help to reduce identity theft through XSS .</li>
+            </ul>
           </p>
-          <!--
-          Add explanation for various cookie tags
-          -->
           <p>
             So as we can see there are various security configuration in place to differentiate between different domains and what to share between them even if it's a sub domain of the main domain.
             An important reference is the <a href="http://php.net/manual/en/function.setcookie.php" target="_blank">Set Cookie</a> function in the php manual.
@@ -123,9 +126,42 @@
             Now coming to CORS, it makes an <b>asynchronous request</b> to get the resource (Synchronous CORS requests are deprecated). Now why is it so important to configure and how does it play a critical role in security?
           </p>
           <p>
-            In the simplest scenario, cross-origin communications starts with a client making a GET, POST, or HEAD request against a resource on the server. In this scenario, the content type of a POST request is limited to <code>application/x-www-form-urlencoded</code>, <code>multipart/form-data</code>, or <code>text/plain</code>. The request includes an Origin header that indicates the origin of the client code.
+            In the simplest scenario, cross-origin communications starts with a client making a GET, POST, or HEAD request against a resource on the server. In this scenario, the content type of a POST request is limited to <code>application/x-www-form-urlencoded</code>, <code>multipart/form-data</code>, or <code>text/plain</code>. The request includes an Origin header that indicates the origin of the client code. <br>
+            Following is an example CORS pre flight request and response. <br>
+            <code>
+              OPTIONS /resource/12345 <br>
+              User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/536.30.1 (KHTML, like Gecko) Version/6.0.5 Safari/536.30.1 <br>
+              Access-Control-Request-Method: DELETE <br>
+              Access-Control-Request-Headers: origin, x-requested-with, accept <br>
+              Origin: http://foo.client.com <br>
+            </code>
+            <br>
+            <br>
+            <code>
+              HTTP/1.1 200 OK  <br>
+              Date: Wed, 20 Nov 2013 19:36:00 GMT <br>
+              Server: Apache-Coyote/1.1 <br>
+              Content-Length: 0 <br>
+              Connection: keep-alive <br>
+              Access-Control-Allow-Origin: http://foo.client.com <br>
+              Access-Control-Allow-Methods: POST, GET, OPTIONS, DELETE <br>
+              Access-Control-Max-Age: 86400 <br>
+            </code>
+            <br>
             Let's see some important terms in CORS
-
+            <ul>
+              <li>Origin</li>
+              <li>Access-Control-Allow-Origin</li>
+              <li>Access-Control-Request-Method</li>
+              <li>Access-Control-Max-Age</li>
+              <li></li>
+            </ul>
+          </p>
+          <p>
+              Two important thing to note are
+              <ul>
+                <li>If <b>Access-Control-Allow-Origin</b> is set to <b>*</b> then <b>Access-Control-Allow-Credentials</b> automattically assumes the value <b>false</b>.</li>
+              </ul>
           </p>
           <p>
             Let's take an use case scenario of a merchant website and how it can effectively use CORS to defend csrf. Let's call it abc.com <br>
