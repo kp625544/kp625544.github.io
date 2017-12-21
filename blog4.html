@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Not just another security blog!</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="cross origin resource sharing">
+    <meta name="author" content="Hydra Kazuya Zinnober">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css/kube.min.css" />
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <link rel="stylesheet" href="css/custom.min.css" />
+    <link rel="shortcut icon" href="img/favicon.png" />
+    <link href="css/Lato.css" rel="stylesheet" type="text/css">
+    <link href="css/open_sans.css" rel="stylesheet" type="text/css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-107740184-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-107740184-1');
+    </script>
+</head>
+<body>
+	<!-- Navigation -->
+	<div class="main-nav">
+		<div class="container">
+			<header class="group top-nav">
+				<nav class="navbar logo-w navbar-left" >
+					<a class="logo" href="index.html">Home</a>
+				</nav>
+				<!-- <div class="navigation-toggle" data-tools="navigation-toggle" data-target="#navbar-1">
+				    <span class="logo">Saturn</span>
+				</div>
+			    <nav id="navbar-1" class="navbar item-nav navbar-right">
+				    <ul>
+				        <li class="active"><a href="index.html">Home</a></li>
+				    </ul>
+				</nav> -->
+			</header>
+		</div>
+	</div>
+
+	<!-- Introduction -->
+	<div class="intro">
+		<div class="container">
+			<div class="units-row">
+			    <div class="unit-10">
+			    	<img class="img-intro" src="img/avatar.png" alt="">
+			    </div>
+			    <div class="unit-90">
+			    	<p class="p-intro">Hello, I’m Hydra. I welcome you to my fourth blog!</p>
+			    </div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Content -->
+	<div class="content">
+		<div class="container">
+			<!-- Post -->
+			<div class="post">
+				<!-- Heading -->
+				<h1>All about Cross Origin Resource Sharing (CORS)</h1></a>
+				<hr>
+				<div class="in-content">
+					<p>
+            Ok so sometime back I was searching about CORS and the security implications around it and I didn't get any much resource around it so I got to messing around with it to know it better.
+            To start with this is not going to be a typical blog about bug bounty but I aim to serve some important terms and working around CORS.
+          </p>
+          <p>
+            Ok so Cross origin resource sharing or CORS is a method developed around the browsers to increase the client side security of web applications.
+          </p>
+          <p>
+            Ok so let me first start with how this came into existence.
+          </p>
+          <p>
+            <b>Same origin policy: </b> The same-origin policy is an important security concept implemented by <b>web browsers </b> to <b>prevent Javascript code</b> from making requests against a <b>different origin</b> (e.g., different domain) than the one from which it was served. Although the same-origin policy is effective in preventing resources from different origins, it also prevents legitimate interactions between a server and clients of a known and trusted origin.
+          </p>
+          <p>
+            Now as we all know what are cookies; and why are they used but what many of us dont know is how important they are and it's configuration with proper headers.
+          </p>
+          <p>
+            <code>
+              set-cookie: TestCookie=Hydra1234; expires=Thu, 21-Dec-2017 14:50:04 GMT; Max-Age=3600; path=/; domain=.hydraz.me; secure; HttpOnly
+            </code>
+          </p>
+          <p>
+            So as we can see there are various security configuration in place to differentiate between different domains and what to share between them even if it's a sub domain of the main domain.
+            An important reference is the <a href="http://php.net/manual/en/function.setcookie.php" target="_blank">Set Cookie</a> function in the php manual.
+          </p>
+          <p>
+            So why CORS? <br>
+            <ul>
+              <li> Sites like GitHub.io came with serving their users with their own subdomain </li>
+              <li> ‎Its mandatory that a user of a particular subdomain shouldn't be authorized to access or identified by the cookie of some other subdomain. </li>
+              <li> ‎sometimes it became necessary to identify the user as well as share resources between various domains. </li>
+              <li> ‎now both the security measure can be maintained by Cross origin resource sharing techniques. </li>
+              <li> ‎cors essentially allows vendors to  maintain users identity across various domains. </li>
+            </ul>
+
+          </p>
+          <p>
+            Now first to know CORS we must know synchronous and asynchronous requests by a browser. <br>
+            <ul>
+              <li>A simple example of a synchrous request can be a contact us form.</li>
+              <ul>
+              <li>Where you fill out the information </li>
+              <li>‎you submit the form. </li>
+              <li>the form redirect/takes you to the thank you page.</li>
+              </ul>
+              <li>A simple example of asynchronous request is when you click on add a product to cart on most of the website and it adds the product to your cart without reloading the entire page.</li>
+              <li>An another difference can be told as a synchrous request work one after another; that a second request is always followed only after clearing the previous request. But in case of asynchronous request it doesn't need to be completed for another request to be made and also if one request completes before another request it has the liberty to show the results at the time of completion and not wait for any other request. </li>
+            </ul>
+          </p>
+          <p>
+            Now coming to CORS, it makes an <b>asynchronous request</b> to get the resource (Synchronous CORS requests are deprecated). Now why is it so important to configure and how does it play a critical role in security?
+          </p>
+          <p>
+            In the simplest scenario, cross-origin communications starts with a client making a GET, POST, or HEAD request against a resource on the server. In this scenario, the content type of a POST request is limited to <code>application/x-www-form-urlencoded</code>, <code>multipart/form-data</code>, or <code>text/plain</code>. The request includes an Origin header that indicates the origin of the client code.
+            Let's see some important terms in CORS
+
+          </p>
+          <p>
+            Let's take an use case scenario of a merchant website and how it can effectively use CORS to defend csrf. Let's call it abc.com <br>
+            <ul>
+
+              <li>Now user A wants to purchase a product from abc.com</li>
+              <li>Now abc.com wants to check if this is a legitimate user and not a forged request. So they can only allow <b>Asynchronous request</b> by using ajax based request in legitimate domain. <br>
+                  This can be done by checking if the
+                  <ol>
+                    <li>User is sending a options request.</li>
+                    <li>User is sending options request from same domain i.e abc.com in this case</li>
+                    <li>User is making a <code>application/json</code> request and not a <code>text/html</code> request.</li>
+                  </ol>
+              </li>
+              <li>‎Now if an attacker tries a cross site request forgery with the victim
+                <ol>
+                  <li>The browser</li>
+                </ol>
+              <li>‎if it's a synchrous request; abc.com can simply block it.</li>
+              <li>‎if it's an asynchronous request from another domain then the cookie sending with the request ( which is important to confirm authenticated requests) will be blocked by the browser.</li>
+            </ul>
+          </p>
+				</div>
+			</div>
+			<!-- /post -->
+		</div>
+	</div>
+
+  <footer>
+		<div class="container">
+			<div class="units-row">
+			    <div class="unit-50">
+					<ul class="social list-flat right">
+						<li><a href="mailto:kaushal.parikh1995@gmail.com"><i class="fa fa-send"></i></a></li>
+						<li><a href="http://twitter.com/kp625544"><i class="fa fa-twitter"></i></a></li>
+						<li><a href="http://facebook.com/kp625544"><i class="fa fa-dribbble"></i></a></li>
+					</ul>
+			    </div>
+			</div>
+			<p class="text-centered foot-cp">
+	    		<a href="#">Post by @hydra</a>
+	    	</p>
+		</div>
+	</footer>
+
+	<!-- Javascript -->
+	<script src="js/jquery.min.js"></script>
+    <script src="js/kube.min.js"></script>
+</body>
+</html>
