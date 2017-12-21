@@ -151,16 +151,18 @@
             Let's see some important terms in CORS
             <ul>
               <li>Origin</li>
-              <li>Access-Control-Allow-Origin</li>
-              <li>Access-Control-Request-Method</li>
-              <li>Access-Control-Max-Age</li>
-              <li></li>
+              <li><b>Access-Control-Allow-Origin:</b> specifies what origin headers are accepted.</li>
+              <li><b>Access-Control-Request-Method:</b> specfies what all type of requests are accepted.</li>
+              <li><b>Access-Control-Max-Age:</b> specifies the amount of time for which the preflight request is valid.</li>
+              <li><b>Access-Control-Allow-Credentials:</b> response header indicates whether or not the response to the request can be exposed to the page.</li>
             </ul>
           </p>
           <p>
-              Two important thing to note are
+              Some important thing to note are
               <ul>
                 <li>If <b>Access-Control-Allow-Origin</b> is set to <b>*</b> then <b>Access-Control-Allow-Credentials</b> automattically assumes the value <b>false</b>.</li>
+                <li>CSRF could still be tried in case <b>Access-Control-Allow-Origin</b> is set to <b>*</b>.</li>
+                <li>CORS is essentially used to share resources (credentials or cookies) between trusted domains.</li>
               </ul>
           </p>
           <p>
