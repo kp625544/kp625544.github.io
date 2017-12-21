@@ -70,15 +70,17 @@
             To start with this is not going to be a typical blog about bug bounty but I aim to serve some important terms and working around CORS.
           </p>
           <p>
-            Ok so Cross origin resource sharing or CORS is a method developed around the browsers to increase the client side security of web applications.
-          </p>
-          <p>
             Ok so let me first start with how this came into existence.
           </p>
           <p>
             <b>Same origin policy: </b> The same-origin policy is an important security concept implemented by <b>web browsers </b> to <b>prevent Javascript code</b> from making requests against a <b>different origin</b> (e.g., different domain) than the one from which it was served. Although the same-origin policy is effective in preventing resources from different origins, it also prevents legitimate interactions between a server and clients of a known and trusted origin.
           </p>
+          <img src="cors.png">
           <p>
+            Ok so Cross origin resource sharing or CORS is a method developed around the browsers to increase the client side security of web applications.
+          </p>
+          <p>
+            Let's stray from CORS a bit and learn a bit about cookies first and how it serves our purpose. <br>
             Now as we all know what are cookies; and why are they used but what many of us dont know is how important they are and it's configuration with proper headers.
           </p>
           <p>
@@ -86,6 +88,9 @@
               set-cookie: TestCookie=Hydra1234; expires=Thu, 21-Dec-2017 14:50:04 GMT; Max-Age=3600; path=/; domain=.hydraz.me; secure; HttpOnly
             </code>
           </p>
+          <!--
+          Add explanation for various cookie tags
+          -->
           <p>
             So as we can see there are various security configuration in place to differentiate between different domains and what to share between them even if it's a sub domain of the main domain.
             An important reference is the <a href="http://php.net/manual/en/function.setcookie.php" target="_blank">Set Cookie</a> function in the php manual.
@@ -141,6 +146,12 @@
                 </ol>
               <li>‎if it's a synchrous request; abc.com can simply block it.</li>
               <li>‎if it's an asynchronous request from another domain then the cookie sending with the request ( which is important to confirm authenticated requests) will be blocked by the browser.</li>
+            </ul>
+          </p>
+          <p>
+            References:
+            <ul>
+              <li>Post by <a href="https://spring.io/understanding/CORS">Spring.io</a></li>
             </ul>
           </p>
 				</div>
