@@ -73,7 +73,7 @@
             Ok so let me first start with how this came into existence.
           </p>
           <p>
-            <b>Same origin policy: </b> The same-origin policy is an important security concept implemented by <b>web browsers </b> to <b>prevent Javascript code</b> from making requests against a <b>different origin</b> (e.g., different domain) than the one from which it was served. Although the same-origin policy is effective in preventing resources from different origins, it also prevents legitimate interactions between a server and clients of a known and trusted origin.
+            <b>Same origin policy: </b> The same-origin policy is an important security mechanism implemented by <b>web browsers </b> to <b>prevent Javascript code</b> from making requests against a <b>different origin</b> (e.g., different domain) than the one from which it was served. Although the same-origin policy is effective in preventing resources from different origins, it also prevents legitimate interactions between a server and clients of a known and trusted origin.
           </p>
           <img src="cors.png">
           <p>
@@ -112,14 +112,14 @@
           <p>
             Now first to know CORS we must know synchronous and asynchronous requests by a browser. <br>
             <ul>
-              <li>A simple example of a synchrous request can be a contact us form.</li>
+              <li>A simple example of a synchronous request can be a contact us form.</li>
               <ul>
               <li>Where you fill out the information </li>
               <li>‎you submit the form. </li>
               <li>the form redirect/takes you to the thank you page.</li>
               </ul>
               <li>A simple example of asynchronous request is when you click on add a product to cart on most of the website and it adds the product to your cart without reloading the entire page.</li>
-              <li>An another difference can be told as a synchrous request work one after another; that a second request is always followed only after clearing the previous request. But in case of asynchronous request it doesn't need to be completed for another request to be made and also if one request completes before another request it has the liberty to show the results at the time of completion and not wait for any other request. </li>
+              <li>Another difference can be told as a synchronous request work one after another; that a second request is always followed only after clearing the previous request. But in case of asynchronous request it doesn't need to be completed for another request to be made and also if one request completes before another request it has the liberty to show the results at the time of completion and not wait for any other request. </li>
             </ul>
           </p>
           <p>
@@ -182,7 +182,7 @@
                 <ol>
                   <li>The browser</li>
                 </ol>
-              <li>‎if it's a synchrous request; abc.com can simply block it.</li>
+              <li>‎if it's a synchronous request; abc.com can simply block it.</li>
               <li>‎if it's an asynchronous request from another domain then the cookie sending with the request ( which is important to confirm authenticated requests) will be blocked by the browser.</li>
             </ul>
           </p>
