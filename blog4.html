@@ -150,17 +150,18 @@
             <br>
             Let's see some important terms in CORS
             <ul>
-              <li>Origin</li>
+              <li><b>Origin:</b> the domain from which the request is originated</li>
               <li><b>Access-Control-Allow-Origin:</b> specifies what origin headers are accepted.</li>
               <li><b>Access-Control-Request-Method:</b> specfies what all type of requests are accepted.</li>
               <li><b>Access-Control-Max-Age:</b> specifies the amount of time for which the preflight request is valid.</li>
               <li><b>Access-Control-Allow-Credentials:</b> response header indicates whether or not the response to the request can be exposed to the page.</li>
+              <li><b>Pre Flight Request</b> Preflight request is a request made by browser prior to the XML http request. This is to ensure that the xhttp request made is supported and allowed by the endpoint specified in the xhttp request.</li>
             </ul>
           </p>
           <p>
               Some important thing to note are
               <ul>
-                <li>If <b>Access-Control-Allow-Origin</b> is set to <b>*</b> then <b>Access-Control-Allow-Credentials</b> automattically assumes the value <b>false</b>.</li>
+                <li>If <b>Access-Control-Allow-Origin</b> is set to <b>*</b> then <b>Access-Control-Allow-Credentials</b> automattically assumes the value <b>false</b>. Why? Some developers are lazy so instead of specifying the accepted domains for cors request they just specify * and this is not a good practice. So browsers like chrome, Mozilla to save users from client side attacks automatically makes the credential header to false so that cookies etc won't be sent for CORS having response with allowed origin with *</li>
                 <li>CSRF could still be tried in case <b>Access-Control-Allow-Origin</b> is set to <b>*</b>.</li>
                 <li>CORS is essentially used to share resources (credentials or cookies) between trusted domains.</li>
               </ul>
