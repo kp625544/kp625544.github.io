@@ -109,6 +109,13 @@ registry=https://npmjs.org
             <h4>2. Virtual repository overrides</h4>
             <p>If scoped traffic is routed through an Artifactory virtual repository that allows remote lookups, the virtual repo may fetch an attacker's high-version package from the public registry and return it instead of the local package.</p>
 
+            <pre class="diagram"><code>[Developer Machine] ──► Requests: @my-secret-org/auth
+                              │
+                    [Artifactory Virtual Repo]
+                              ├── Local Private Index (Has v1.0.0)
+                              └── Remote Proxy to npmjs.org (Attacker uploaded v99.9.9)
+            </code></pre>
+
             <h4>3. Transitive dependency injection</h4>
             <p>A scoped package may depend on an unscoped internal package (for example, <code>utility-logger</code>). If that unscoped name is unreserved on the public registry, attackers can publish it and compromise the dependency chain.</p>
 
