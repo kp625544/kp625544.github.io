@@ -7,153 +7,152 @@ tags: [npm, supply-chain, application-security, devsecops]
 ---
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Deep Dive: Breaking and Securing the npm Supply Chain Against Dependency Confusion</title>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Deep dive into dependency confusion and mitigations for npm supply chain attacks">
-  <meta name="author" content="Hydra Kazuya Zinnober">
-  <link rel="stylesheet" href="css/kube.min.css" />
-  <link rel="stylesheet" href="css/font-awesome.min.css" />
-  <link rel="stylesheet" href="css/custom.min.css" />
-  <link rel="shortcut icon" href="img/favicon.png" />
-  <link href="css/Lato.css" rel="stylesheet" type="text/css">
-  <link href="css/open_sans.css" rel="stylesheet" type="text/css">
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-107740184-1"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);} 
-    gtag('js', new Date());
-
-    gtag('config', 'UA-107740184-1');
-  </script>
-</head>
-<body>
-  <!-- Navigation -->
-  <div class="main-nav">
-    <div class="container">
-      <header class="group top-nav">
-        <nav class="navbar logo-w navbar-left" >
-          <a class="logo" href="index.html">Home</a>
-        </nav>
-      </header>
+  <head>
+    <title>Deep Dive: Breaking and Securing the npm Supply Chain Against Dependency Confusion</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Deep dive into dependency confusion and mitigations for npm supply chain attacks">
+    <meta name="author" content="Hydra Kazuya Zinnober">
+    <link rel="stylesheet" href="css/kube.min.css" />
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <link rel="stylesheet" href="css/custom.min.css" />
+    <link rel="shortcut icon" href="img/favicon.png" />
+    <link href="css/Lato.css" rel="stylesheet" type="text/css">
+    <link href="css/open_sans.css" rel="stylesheet" type="text/css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-107740184-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);} 
+      gtag('js', new Date());
+      gtag('config', 'UA-107740184-1');
+    </script>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <div class="main-nav">
+      <div class="container">
+        <header class="group top-nav">
+          <nav class="navbar logo-w navbar-left">
+            <a class="logo" href="index.html">Home</a>
+          </nav>
+        </header>
+      </div>
     </div>
-  </div>
 
-  <!-- Introduction -->
-  <div class="intro">
-    <div class="container">
-      <div class="units-row">
-        <div class="unit-10">
-          <img class="img-intro" src="img/avatar.png" alt="">
-        </div>
-        <div class="unit-90">
-          <p class="p-intro">In modern software development we rely heavily on third-party libraries — a convenience that introduces supply-chain risks like Dependency Confusion.</p>
+    <!-- Introduction -->
+    <div class="intro">
+      <div class="container">
+        <div class="units-row">
+          <div class="unit-10">
+            <img class="img-intro" src="img/avatar.png" alt="">
+          </div>
+          <div class="unit-90">
+            <p class="p-intro">In modern software development we rely heavily on third-party libraries — a convenience that introduces supply-chain risks like Dependency Confusion.</p>
+          </div>
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Content -->
-  <div class="content">
-    <div class="container">
-      <!-- Post -->
-      <div class="post">
-        <!-- Heading -->
-        <h1>Deep Dive: Breaking and Securing the npm Supply Chain Against Dependency Confusion</h1>
-        <p class="meta">Posted: 2026-06-03 | Categories: Security, AppSec</p>
-        <hr>
-        <div class="in-content">
-          <p>In modern software development, we rely heavily on the convenience of third-party open-source libraries. However, this convenience introduces severe risks to the software supply chain. A prominent threat in this landscape is <strong>Dependency Confusion</strong> (namespace shadowing)—an attack that tricks automated systems into pulling malicious public code instead of internal private packages to achieve Remote Code Execution (RCE).</p>
+    <!-- Content -->
+    <div class="content">
+      <div class="container">
+        <!-- Post -->
+        <div class="post">
+          <!-- Heading -->
+          <h1>Deep Dive: Breaking and Securing the npm Supply Chain Against Dependency Confusion</h1>
+          <p class="meta">Posted: 2026-06-03 | Categories: Security, AppSec</p>
+          <hr>
+          <div class="in-content">
+            <p>In modern software development, we rely heavily on the convenience of third-party open-source libraries. However, this convenience introduces severe risks to the software supply chain. A prominent threat in this landscape is <strong>Dependency Confusion</strong> (namespace shadowing)—an attack that tricks automated systems into pulling malicious public code instead of internal private packages to achieve Remote Code Execution (RCE).</p>
 
-          <h2>Technical Aspects</h2>
-          <h3>The Default Resolution Algorithm</h3>
-          <p>To understand why dependency confusion happens, look at how the npm client behaves when configured with a unified registry proxy (a <strong>Virtual Repository</strong> in JFrog Artifactory or a Combined Group in Sonatype Nexus). A virtual repository aggregates multiple repositories into a single endpoint, typically combining local private repositories and a remote proxy to the public npm registry.</p>
+            <h2>Technical Aspects</h2>
+            <h3>The Default Resolution Algorithm</h3>
+            <p>To understand why dependency confusion happens, look at how the npm client behaves when configured with a unified registry proxy (a <strong>Virtual Repository</strong> in JFrog Artifactory or a Combined Group in Sonatype Nexus). A virtual repository aggregates multiple repositories into a single endpoint, typically combining local private repositories and a remote proxy to the public npm registry.</p>
 
-          <p>When a developer runs <code>npm install</code>, the npm client queries this virtual endpoint for a package metadata manifest (the packument). If a package exists in both the local private repository and the remote public proxy, Artifactory may merge metadata. The npm client then selects the highest semantic version. In short:</p>
+            <p>When a developer runs <code>npm install</code>, the npm client queries this virtual endpoint for a package metadata manifest (the packument). If a package exists in both the local private repository and the remote public proxy, Artifactory may merge metadata. The npm client then selects the highest semantic version. In short:</p>
 
-          <p>$$\text{Selected Version} = \max(\text{Versions Available from Local} \cup \text{Versions Available from Remote})$$</p>
+            <p>$$\text{Selected Version} = \max(\text{Versions Available from Local} \cup \text{Versions Available from Remote})$$</p>
 
-          <p>Because npm prefers the highest SemVer number, an attacker publishing a high-version package (for example, <code>v99.9.9</code>) on the public registry can cause the virtual repository to serve the malicious public package over an internal <code>v1.0.0</code> asset.</p>
+            <p>Because npm prefers the highest SemVer number, an attacker publishing a high-version package (for example, <code>v99.9.9</code>) on the public registry can cause the virtual repository to serve the malicious public package over an internal <code>v1.0.0</code> asset.</p>
 
-          <h3>The Execution Mechanism</h3>
-          <p>The attack often escalates via <strong>npm lifecycle scripts</strong>. An attacker can publish a package with malicious install hooks, for example:</p>
+            <h3>The Execution Mechanism</h3>
+            <p>The attack often escalates via <strong>npm lifecycle scripts</strong>. An attacker can publish a package with malicious install hooks, for example:</p>
 
-          <pre><code class="language-json">{
+            <pre><code class="language-json">{
   "name": "internal-payment-gateway",
   "version": "99.9.9",
   "scripts": {
-  "preinstall": "node ./malicious-telemetry.js"
+    "preinstall": "node ./malicious-telemetry.js"
   }
 }</code></pre>
 
-          <p>The moment <code>npm install</code> extracts such a tarball, the script can run with the privileges of the installing process and exfiltrate secrets (like <code>AWS_ACCESS_KEY_ID</code>, <code>NPM_TOKEN</code>, or <code>GITHUB_TOKEN</code>), read local files, or open reverse shells.</p>
+            <p>The moment <code>npm install</code> extracts such a tarball, the node runtime executes <code>./malicious-telemetry.js</code> with the privileges of the running shell. And exfiltrate secrets (like <code>AWS_ACCESS_KEY_ID</code>, <code>NPM_TOKEN</code>, or <code>GITHUB_TOKEN</code>), read local files, or open reverse shells.</p>
 
-          <h2>Defense</h2>
-          <h3>Why Scoped Packages Help</h3>
-          <p>Moving from unscoped names (<code>internal-payment-gateway</code>) to scoped packages (<code>@corporate-scope/payment-gateway</code>) is a primary mitigation. Scopes provide:</p>
-          <ul>
-            <li><strong>Global uniqueness</strong>: Registering your scope on the public registry prevents outsiders from publishing packages using that prefix.</li>
-            <li><strong>Deterministic routing</strong>: Client-side configuration in <code>.npmrc</code> can pin a scope to an internal registry, for example:</li>
-          </ul>
+            <h2>Defense</h2>
+            <h3>Why Scoped Packages Defend Against Dependency Confusion</h3>
+            <p>Moving from unscoped names (<code>internal-payment-gateway</code>) to scoped packages (<code>@corporate-scope/payment-gateway</code>) is a primary mitigation. Scopes provide:</p>
+            <ul>
+              <li><strong>Global uniqueness</strong>: Registering your scope on the public registry prevents outsiders from publishing packages using that prefix.</li>
+              <li><strong>Deterministic routing</strong>: Client-side configuration in <code>.npmrc</code> can pin a scope to an internal registry, for example:</li>
+            </ul>
 
-          <pre><code class="language-ini"># Default to public registry for open-source assets
+            <pre><code class="language-ini"># Default to public registry for open-source assets
 registry=https://npmjs.org
 
 # Explicitly isolate the corporate scope to internal registry
 @corporate-scope:registry=https://internal.corp</code></pre>
 
-          <h3>How Attackers Bypass Scopes</h3>
-          <h4>1. "Internal-only" scope not reserved publicly</h4>
-          <p>If teams create an internal scope but never reserve it on the public registry, an attacker who discovers the scope name can register it publicly and publish malicious high-version packages. This becomes dangerous if a CI/CD runner or developer machine falls back to the public registry.</p>
+            <h3>How Attackers Bypass Scopes</h3>
+            <h4>1. "Internal-only" scope not reserved publicly</h4>
+            <p>If teams create an internal scope but never reserve it on the public registry, an attacker who discovers the scope name can register it publicly and publish malicious high-version packages. This becomes dangerous if a CI/CD runner or developer machine falls back to the public registry.</p>
 
-          <h4>2. Virtual repository overrides</h4>
-          <p>If scoped traffic is routed through an Artifactory virtual repository that allows remote lookups, the virtual repo may fetch an attacker's high-version package from the public registry and return it instead of the local package.</p>
+            <h4>2. Virtual repository overrides</h4>
+            <p>If scoped traffic is routed through an Artifactory virtual repository that allows remote lookups, the virtual repo may fetch an attacker's high-version package from the public registry and return it instead of the local package.</p>
 
-          <h4>3. Transitive dependency injection</h4>
-          <p>A scoped package may depend on an unscoped internal package (for example, <code>utility-logger</code>). If that unscoped name is unreserved on the public registry, attackers can publish it and compromise the dependency chain.</p>
+            <h4>3. Transitive dependency injection</h4>
+            <p>A scoped package may depend on an unscoped internal package (for example, <code>utility-logger</code>). If that unscoped name is unreserved on the public registry, attackers can publish it and compromise the dependency chain.</p>
 
-          <h2>Defense in Depth</h2>
-          <p>Implement multiple layers of controls:</p>
-          <h4>Layer 1: Repository-level routing & exclude patterns</h4>
-          <p>Enforce protections on artifact servers. In Artifactory or Nexus, set repository exclude patterns or routing rules to prevent public lookups for corporate scopes (for example, exclude <code>@corporate-scope/**</code> from remote proxy).</p>
+            <h2>Defense in Depth</h2>
+            <p>Implement multiple layers of controls:</p>
+            <h4>Layer 1: Repository-level routing & exclude patterns</h4>
+            <p>Enforce protections on artifact servers. In Artifactory or Nexus, set repository exclude patterns or routing rules to prevent public lookups for corporate scopes (for example, exclude <code>@corporate-scope/**</code> from remote proxy).</p>
 
-          <h4>Layer 2: Namespace reservation</h4>
-          <p>Reserve and register corporate scopes and critical unscoped package names on the public npm registry (even as empty placeholders) to prevent squatting.</p>
+            <h4>Layer 2: Namespace reservation</h4>
+            <p>Reserve and register corporate scopes and critical unscoped package names on the public npm registry (even as empty placeholders) to prevent squatting.</p>
 
-          <h4>Layer 3: Deterministic lockfiles</h4>
-          <p>Commit lockfiles (<code>package-lock.json</code>, <code>yarn.lock</code>, <code>pnpm-lock.yaml</code>) and use <code>npm ci</code> in CI to ensure exact versions and integrity hashes are enforced.</p>
+            <h4>Layer 3: Deterministic lockfiles</h4>
+            <p>Commit lockfiles (<code>package-lock.json</code>, <code>yarn.lock</code>, <code>pnpm-lock.yaml</code>) and use <code>npm ci</code> in CI to ensure exact versions and integrity hashes are enforced.</p>
 
-          <h4>Layer 4: Execution isolation</h4>
-          <p>Run installs with scripts disabled where appropriate:</p>
-          <pre><code class="language-bash">npm ci --ignore-scripts</code></pre>
+            <h4>Layer 4: Execution isolation</h4>
+            <p>Run installs with scripts disabled where appropriate:</p>
+            <pre><code class="language-bash">npm ci --ignore-scripts</code></pre>
 
-          <p>Using these controls together—repository routing, namespace reservation, deterministic lockfiles, and execution isolation—significantly reduces the attack surface for dependency confusion.</p>
+            <p>Using these controls together—repository routing, namespace reservation, deterministic lockfiles, and execution isolation—significantly reduces the attack surface for dependency confusion.</p>
+          </div>
         </div>
+        <!-- /post -->
       </div>
-      <!-- /post -->
     </div>
-  </div>
 
-  <footer>
-    <div class="container">
-      <div class="units-row">
-        <div class="unit-50">
-          <ul class="social list-flat right">
-            <li><a href="mailto:kaushal.parikh1995@gmail.com"><i class="fa fa-send"></i></a></li>
-            <li><a href="http://twitter.com/kp625544"><i class="fa fa-twitter"></i></a></li>
-            <li><a href="http://facebook.com/kp625544"><i class="fa fa-dribbble"></i></a></li>
-          </ul>
+    <footer>
+      <div class="container">
+        <div class="units-row">
+          <div class="unit-50">
+            <ul class="social list-flat right">
+              <li><a href="mailto:kaushal.parikh1995@gmail.com"><i class="fa fa-send"></i></a></li>
+              <li><a href="http://twitter.com/kp625544"><i class="fa fa-twitter"></i></a></li>
+              <li><a href="http://facebook.com/kp625544"><i class="fa fa-dribbble"></i></a></li>
+            </ul>
+          </div>
         </div>
+        <p class="text-centered foot-cp">
+          <a href="#">Post by @hydra</a>
+        </p>
       </div>
-      <p class="text-centered foot-cp">
-        <a href="#">Post by @hydra</a>
-      </p>
-    </div>
-  </footer>
+    </footer>
 
-  <!-- Javascript -->
-  <script src="js/jquery.min.js"></script>
-  <script src="js/kube.min.js"></script>
-</body>
+    <!-- Javascript -->
+    <script src="js/jquery.min.js"></script>
+    <script src="js/kube.min.js"></script>
+  </body>
 </html>
