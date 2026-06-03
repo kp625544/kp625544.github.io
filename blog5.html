@@ -5,120 +5,155 @@ date: 2026-06-03 13:47:00 +0000
 categories: [Security, AppSec]
 tags: [npm, supply-chain, application-security, devsecops]
 ---
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Deep Dive: Breaking and Securing the npm Supply Chain Against Dependency Confusion</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Deep dive into dependency confusion and mitigations for npm supply chain attacks">
+  <meta name="author" content="Hydra Kazuya Zinnober">
+  <link rel="stylesheet" href="css/kube.min.css" />
+  <link rel="stylesheet" href="css/font-awesome.min.css" />
+  <link rel="stylesheet" href="css/custom.min.css" />
+  <link rel="shortcut icon" href="img/favicon.png" />
+  <link href="css/Lato.css" rel="stylesheet" type="text/css">
+  <link href="css/open_sans.css" rel="stylesheet" type="text/css">
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-107740184-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);} 
+    gtag('js', new Date());
 
-In modern software development, we rely heavily on the convenience of third-party open-source libraries. However, this convenience introduces severe risks to the software supply chain. A prominent threat in this landscape is **Dependency Confusion** (also known as namespace shadowing)—a critical flaw that tricks automated systems into pulling malicious public code instead of internal private files to achieve Remote Code Execution (RCE).
+    gtag('config', 'UA-107740184-1');
+  </script>
+</head>
+<body>
+  <!-- Navigation -->
+  <div class="main-nav">
+    <div class="container">
+      <header class="group top-nav">
+        <nav class="navbar logo-w navbar-left" >
+          <a class="logo" href="index.html">Home</a>
+        </nav>
+      </header>
+    </div>
+  </div>
 
-This attack does not require bypassing corporate firewalls or exploiting zero-day memory corruptions. Instead, it weaponizes the core, default behavior of package managers—turning standard package-resolution logic into an infiltration vector.
+  <!-- Introduction -->
+  <div class="intro">
+    <div class="container">
+      <div class="units-row">
+        <div class="unit-10">
+          <img class="img-intro" src="img/avatar.png" alt="">
+        </div>
+        <div class="unit-90">
+          <p class="p-intro">In modern software development we rely heavily on third-party libraries — a convenience that introduces supply-chain risks like Dependency Confusion.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 
-<!--more-->
+  <!-- Content -->
+  <div class="content">
+    <div class="container">
+      <!-- Post -->
+      <div class="post">
+        <!-- Heading -->
+        <h1>Deep Dive: Breaking and Securing the npm Supply Chain Against Dependency Confusion</h1>
+        <p class="meta">Posted: 2026-06-03 | Categories: Security, AppSec</p>
+        <hr>
+        <div class="in-content">
+          <p>In modern software development, we rely heavily on the convenience of third-party open-source libraries. However, this convenience introduces severe risks to the software supply chain. A prominent threat in this landscape is <strong>Dependency Confusion</strong> (namespace shadowing)—an attack that tricks automated systems into pulling malicious public code instead of internal private packages to achieve Remote Code Execution (RCE).</p>
 
-## Technical Aspects
+          <h2>Technical Aspects</h2>
+          <h3>The Default Resolution Algorithm</h3>
+          <p>To understand why dependency confusion happens, look at how the npm client behaves when configured with a unified registry proxy (a <strong>Virtual Repository</strong> in JFrog Artifactory or a Combined Group in Sonatype Nexus). A virtual repository aggregates multiple repositories into a single endpoint, typically combining local private repositories and a remote proxy to the public npm registry.</p>
 
-### The Default Resolution Algorithm
-To understand why dependency confusion happens, you must look at how the npm client behaves when configured with a unified registry proxy (like a **Virtual Repository** in JFrog Artifactory or a Combined Group in Sonatype Nexus). 
+          <p>When a developer runs <code>npm install</code>, the npm client queries this virtual endpoint for a package metadata manifest (the packument). If a package exists in both the local private repository and the remote public proxy, Artifactory may merge metadata. The npm client then selects the highest semantic version. In short:</p>
 
-A virtual repository aggregates multiple source repositories into a single endpoint URL. Typically, it combines:
-1. **Local Repositories**: Where internal, private corporate packages are hosted.
-2. **Remote Repositories**: A caching proxy that forwards requests to the public npm registry.
+          <p>$$\text{Selected Version} = \max(\text{Versions Available from Local} \cup \text{Versions Available from Remote})$$</p>
 
-When a developer runs `npm install`, the npm client queries this virtual endpoint for a package metadata manifest (the `packument`). 
+          <p>Because npm prefers the highest SemVer number, an attacker publishing a high-version package (for example, <code>v99.9.9</code>) on the public registry can cause the virtual repository to serve the malicious public package over an internal <code>v1.0.0</code> asset.</p>
 
-If a package exists in both the local private repository and the remote public proxy, Artifactory merges the metadata. The npm client parses this combined manifest and applies its default version-selection algorithm:
+          <h3>The Execution Mechanism</h3>
+          <p>The attack often escalates via <strong>npm lifecycle scripts</strong>. An attacker can publish a package with malicious install hooks, for example:</p>
 
-$$\text{Selected Version} = \max(\text{Versions Available from Local} \cup \text{Versions Available from Remote})$$
-
-Because npm prioritizes the highest semantic version (SemVer) number, an attacker who publishes `v99.9.9` of an internal package name on the public registry will force the virtual repository to serve the malicious public asset over the internal `v1.0.0` code.
-
-### The Execution Mechanism
-The attack transitions from a package download to full system compromise instantly via **npm Lifecycle Scripts**. The attacker injects malicious logic into the `package.json` hooks of their public dummy asset:
-
-```json
-{
+          <pre><code class="language-json">{
   "name": "internal-payment-gateway",
   "version": "99.9.9",
   "scripts": {
-    "preinstall": "node ./malicious-telemetry.js"
+  "preinstall": "node ./malicious-telemetry.js"
   }
-}
-```
+}</code></pre>
 
-The moment `npm install` extracts the tarball, the node runtime executes `./malicious-telemetry.js` with the privileges of the running shell. This allows the script to read environment variables (exposing `AWS_ACCESS_KEY_ID`, `NPM_TOKEN`, and `GITHUB_TOKEN`), access local files, or establish a reverse shell back to the attacker.
+          <p>The moment <code>npm install</code> extracts such a tarball, the script can run with the privileges of the installing process and exfiltrate secrets (like <code>AWS_ACCESS_KEY_ID</code>, <code>NPM_TOKEN</code>, or <code>GITHUB_TOKEN</code>), read local files, or open reverse shells.</p>
 
----
+          <h2>Defense</h2>
+          <h3>Why Scoped Packages Help</h3>
+          <p>Moving from unscoped names (<code>internal-payment-gateway</code>) to scoped packages (<code>@corporate-scope/payment-gateway</code>) is a primary mitigation. Scopes provide:</p>
+          <ul>
+            <li><strong>Global uniqueness</strong>: Registering your scope on the public registry prevents outsiders from publishing packages using that prefix.</li>
+            <li><strong>Deterministic routing</strong>: Client-side configuration in <code>.npmrc</code> can pin a scope to an internal registry, for example:</li>
+          </ul>
 
-## Defense
-
-### Why Scoped Packages Defend
-The industry standard mitigation for this flaw is moving from unscoped package names (`internal-payment-gateway`) to **Scoped Packages** (`@corporate-scope/payment-gateway`). 
-
-Scopes act as a security boundary for two reasons:
-1. **Global Uniqueness**: An organization can formally claim and register a `@scope` name on the public npm registry. Once owned, the public registry blocks any unauthorized users from publishing packages containing that prefix.
-2. **Deterministic Scoped Routing**: It allows developers to split resolution rules natively on the client side via an `.npmrc` file. Instead of relying on a virtual registry mix, you explicitly pin scopes:
-
-```ini
-# Default to public registry for open-source assets
+          <pre><code class="language-ini"># Default to public registry for open-source assets
 registry=https://npmjs.org
 
-# Explicitly isolate the corporate scope to internal hardware
-@corporate-scope:registry=https://internal.corp
-```
+# Explicitly isolate the corporate scope to internal registry
+@corporate-scope:registry=https://internal.corp</code></pre>
 
----
+          <h3>How Attackers Bypass Scopes</h3>
+          <h4>1. "Internal-only" scope not reserved publicly</h4>
+          <p>If teams create an internal scope but never reserve it on the public registry, an attacker who discovers the scope name can register it publicly and publish malicious high-version packages. This becomes dangerous if a CI/CD runner or developer machine falls back to the public registry.</p>
 
-## Defense Workarounds: How Attackers Break It
+          <h4>2. Virtual repository overrides</h4>
+          <p>If scoped traffic is routed through an Artifactory virtual repository that allows remote lookups, the virtual repo may fetch an attacker's high-version package from the public registry and return it instead of the local package.</p>
 
-Relying entirely on scopes is a fragile approach if your implementation leaves a single blind spot. Attackers leverage specific structural gaps to break scope-based defenses:
+          <h4>3. Transitive dependency injection</h4>
+          <p>A scoped package may depend on an unscoped internal package (for example, <code>utility-logger</code>). If that unscoped name is unreserved on the public registry, attackers can publish it and compromise the dependency chain.</p>
 
-### 1. The "Internal-Only" Scope Registration Flaw
-Many enterprise teams create scoped packages (e.g., `@my-secret-org/auth`) inside their internal Artifactory setup but **never register the scope on the public npm registry**. They assume that because it is an "internal scope," it does not exist to the outside world.
+          <h2>Defense in Depth</h2>
+          <p>Implement multiple layers of controls:</p>
+          <h4>Layer 1: Repository-level routing & exclude patterns</h4>
+          <p>Enforce protections on artifact servers. In Artifactory or Nexus, set repository exclude patterns or routing rules to prevent public lookups for corporate scopes (for example, exclude <code>@corporate-scope/**</code> from remote proxy).</p>
 
-#### The Exploit Vector:
-If an attacker discovers this internal scope name (via leaked JavaScript source maps, public GitHub pull requests, or exposure in build logs), they can simply log onto the public registry and register `@my-secret-org` themselves. 
+          <h4>Layer 2: Namespace reservation</h4>
+          <p>Reserve and register corporate scopes and critical unscoped package names on the public npm registry (even as empty placeholders) to prevent squatting.</p>
 
-If a developer’s client configuration slips, or if a global `.npmrc` file is missing on a new CI/CD runner, the build tool will default to querying the public registry. Because the attacker now owns that scope publicly, they can serve a high-version malicious replacement package.
+          <h4>Layer 3: Deterministic lockfiles</h4>
+          <p>Commit lockfiles (<code>package-lock.json</code>, <code>yarn.lock</code>, <code>pnpm-lock.yaml</code>) and use <code>npm ci</code> in CI to ensure exact versions and integrity hashes are enforced.</p>
 
-### 2. Upstream Virtual Registry Overrides
-If your developer teams route their scoped traffic to an Artifactory **Virtual Repository** rather than a dedicated **Local Repository**, they remain vulnerable. 
+          <h4>Layer 4: Execution isolation</h4>
+          <p>Run installs with scripts disabled where appropriate:</p>
+          <pre><code class="language-bash">npm ci --ignore-scripts</code></pre>
 
-[Developer Machine] ──► Requests: @my-secret-org/auth│[Artifactory Virtual Repo]├── Local Private Index (Has v1.0.0)└── Remote Proxy to npmjs.org (Attacker uploaded v99.9.9)
+          <p>Using these controls together—repository routing, namespace reservation, deterministic lockfiles, and execution isolation—significantly reduces the attack surface for dependency confusion.</p>
+        </div>
+      </div>
+      <!-- /post -->
+    </div>
+  </div>
 
-Even though you use a scope, if Artifactory’s virtual logic allows remote public lookups for that scope, the upstream proxy will fetch the attacker's `v99.9.9` package from the public registry and feed it directly down the pipe.
+  <footer>
+    <div class="container">
+      <div class="units-row">
+        <div class="unit-50">
+          <ul class="social list-flat right">
+            <li><a href="mailto:kaushal.parikh1995@gmail.com"><i class="fa fa-send"></i></a></li>
+            <li><a href="http://twitter.com/kp625544"><i class="fa fa-twitter"></i></a></li>
+            <li><a href="http://facebook.com/kp625544"><i class="fa fa-dribbble"></i></a></li>
+          </ul>
+        </div>
+      </div>
+      <p class="text-centered foot-cp">
+        <a href="#">Post by @hydra</a>
+      </p>
+    </div>
+  </footer>
 
-### 3. Transitive Dependency Injection
-An internal scoped package (`@myorg/core`) might depend on a secondary, internal package that was accidentally created without a scope (`utility-logger`). 
-
-Even if the main application securely references the scoped wrapper `@myorg/core`, npm’s recursive resolution will search for the child dependency `utility-logger`. If `utility-logger` is unscoped and unreserved, the attacker can hijack it on the public market, compromising the parent scoped application from the inside out.
-
----
-
-## Defense in Depth
-
-To build an institutional defense architecture against dependency confusion, implement a multi-layered verification strategy:
-
-### Layer 1: Artifactory Exclude Patterns & Routing Rules
-Do not rely on the client-side configuration files of individual developers to handle routing safely. Enforce protection on the artifact server. 
-
-Within JFrog Artifactory or Sonatype Nexus, define explicit **Repositories Exclude Patterns** or **Routing Rules** on your public remote repositories:
-
-* **Rule**: Set an exclude pattern on your public remote registry proxy for `**/@corporate-scope/**`.
-* **Result**: If a local client requests a package inside that scope, Artifactory is explicitly forbidden from forwarding that request to the public registry, preventing public lookup attempts.
-
-[Remote npm Proxy Settings in Artifactory]Include Patterns: *Exclude Patterns: @corporate-scope/**, internal-prefix-*
-### Layer 2: Namespace Reservation & Squatting
-Always register your corporate scopes publicly on the official npm registry, even if you never intend to release public code there. If your firm relies on older, unscoped internal frameworks, you must manually register those exact package names on the public registry as empty, benign placeholders to permanently block outside registration.
-
-### Layer 3: Deterministic Cryptographic Lockfiles
-Enforce immutable builds by committing `package-lock.json`, `yarn.lock`, or `pnpm-lock.yaml` directly into your source repositories. 
-* In deployment and build workflows, mandate the use of `npm ci` (Clean Install) rather than `npm install`.
-* The `npm ci` command enforces strict matching against the lockfile’s recorded cryptographic SHA integrity hashes and specific version numbers. If the registry returns a higher version or an altered file hash, the pipeline instantly aborts the build.
-
-### Layer 4: Execution Isolation (`ignore-scripts`)
-Strip out the attack's execution engine by running builds with execution scripts suppressed. Append the following flag globally to enterprise build runners:
-
-```bash
-npm install --ignore-scripts
-# or
-npm ci --ignore-scripts
-```
-
-This ensures that even if a hijacked package bypasses routing configurations and drops onto a machine, its automated pre/post-installation shell commands are blocked from executing.
+  <!-- Javascript -->
+  <script src="js/jquery.min.js"></script>
+  <script src="js/kube.min.js"></script>
+</body>
+</html>
