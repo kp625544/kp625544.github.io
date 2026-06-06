@@ -1,0 +1,473 @@
+---
+layout: post
+title: "Deep Dive: The OAuth Identity Paradox — Why Verified Emails Are Not Proof of Employment"
+date: 2026-06-06 13:47:00 +0000
+categories: [Security, IAM]
+tags: [oauth, oidc, sso, identity, authorization, bug-bounty]
+---
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Deep Dive: The OAuth Identity Paradox — Why Verified Emails Are Not Proof of Employment</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Understanding the trust boundaries between OAuth providers, SaaS applications, and enterprise identity systems.">
+    <meta name="author" content="Hydra">
+  </head>
+
+  <body>
+
+    <div class="content">
+      <div class="container">
+
+        <div class="post">
+
+          <h1>Deep Dive: The OAuth Identity Paradox — Why Verified Emails Are Not Proof of Employment</h1>
+
+          <p class="meta">
+            Posted: 2026-06-06 | Categories: Security, IAM
+          </p>
+
+          <hr>
+
+          <div class="in-content">
+
+            <p>
+              Modern SaaS applications rely heavily on OAuth. Users can sign in using GitHub, Google,
+              Microsoft, GitLab, LinkedIn, and dozens of other identity providers with a single click.
+            </p>
+
+            <p>
+              While OAuth simplifies authentication, many systems accidentally treat identity attributes
+              as authorization signals. The most common example is the email address.
+            </p>
+
+            <p>
+              This creates a subtle trust problem:
+            </p>
+
+            <pre class="diagram"><code>
+Does a verified email prove current ownership?
+
+Does current ownership prove organizational affiliation?
+
+Does organizational affiliation prove authorization?
+            </code></pre>
+
+            <p>
+              The answer to all three questions is different.
+            </p>
+
+            <h2>Understanding the Three Trust Levels</h2>
+
+            <p>
+              Before discussing OAuth vulnerabilities, we need to distinguish between three separate
+              identity claims that are often confused.
+            </p>
+
+            <h3>Level 1: Historical Verification</h3>
+
+            <p>
+              Most OAuth providers operate using historical verification.
+            </p>
+
+            <pre class="diagram"><code>
+2023:
+alice@company.com verified
+
+2026:
+email_verified = true
+            </code></pre>
+
+            <p>
+              The provider is only asserting:
+            </p>
+
+            <pre class="diagram"><code>
+User completed our email verification process.
+            </code></pre>
+
+            <p>
+              It is NOT asserting:
+            </p>
+
+            <pre class="diagram"><code>
+User currently controls mailbox.
+
+User still works at company.
+            </code></pre>
+
+            <h3>Level 2: Periodic Verification</h3>
+
+            <p>
+              Some platforms periodically revalidate ownership.
+            </p>
+
+            <pre class="diagram"><code>
+2023:
+alice@company.com verified
+
+2024:
+reverify
+
+2025:
+reverify
+            </code></pre>
+
+            <p>
+              The resulting trust statement becomes:
+            </p>
+
+            <pre class="diagram"><code>
+User recently demonstrated mailbox ownership.
+            </code></pre>
+
+            <p>
+              This is stronger than historical verification but still does not prove employment.
+            </p>
+
+            <h3>Level 3: Live Enterprise Identity</h3>
+
+            <p>
+              Enterprise Identity Providers work differently.
+            </p>
+
+            <pre class="diagram"><code>
+HR System
+    ↓
+Google Workspace / Entra / Okta
+    ↓
+SAML / SCIM
+    ↓
+SaaS Platform
+            </code></pre>
+
+            <p>
+              Here the claim becomes:
+            </p>
+
+            <pre class="diagram"><code>
+The company currently asserts this user exists.
+            </code></pre>
+
+            <p>
+              This is significantly stronger than email verification.
+            </p>
+
+            <h2>The Employee Offboarding Problem</h2>
+
+            <p>
+              Consider a company called ABC.
+            </p>
+
+            <p>
+              Every employee receives:
+            </p>
+
+            <pre class="diagram"><code>
+alice@abc.com
+            </code></pre>
+
+            <p>
+              through Google Workspace.
+            </p>
+
+            <p>
+              The company uses a SaaS platform that supports:
+            </p>
+
+            <pre class="diagram"><code>
+Login with Google
+
+Login with GitHub
+            </code></pre>
+
+            <p>
+              Alice signs into the SaaS using Google.
+            </p>
+
+            <pre class="diagram"><code>
+Google OAuth
+    ↓
+alice@abc.com
+    ↓
+SaaS Account
+            </code></pre>
+
+            <p>
+              Later she adds the same work email to GitHub:
+            </p>
+
+            <pre class="diagram"><code>
+GitHub Account
+    ↓
+Verified Email:
+alice@abc.com
+            </code></pre>
+
+            <p>
+              Everything works as expected.
+            </p>
+
+            <h2>What Happens When Alice Leaves?</h2>
+
+            <p>
+              ABC disables:
+            </p>
+
+            <pre class="diagram"><code>
+alice@abc.com
+            </code></pre>
+
+            <p>
+              inside Google Workspace.
+            </p>
+
+            <p>
+              Now:
+            </p>
+
+            <pre class="diagram"><code>
+Google Login
+    ↓
+Fails
+            </code></pre>
+
+            <p>
+              However:
+            </p>
+
+            <pre class="diagram"><code>
+GitHub Login
+    ↓
+Succeeds
+            </code></pre>
+
+            <p>
+              because the GitHub account still exists.
+            </p>
+
+            <p>
+              Most people immediately conclude:
+            </p>
+
+            <blockquote>
+              This is a vulnerability.
+            </blockquote>
+
+            <p>
+              But is it?
+            </p>
+
+            <h2>Authentication vs Authorization</h2>
+
+            <p>
+              OAuth only answers:
+            </p>
+
+            <pre class="diagram"><code>
+Who are you?
+            </code></pre>
+
+            <p>
+              It does not answer:
+            </p>
+
+            <pre class="diagram"><code>
+Should you have access?
+            </code></pre>
+
+            <p>
+              This distinction is critical.
+            </p>
+
+            <p>
+              GitHub can legitimately claim:
+            </p>
+
+            <pre class="diagram"><code>
+Alice verified this email.
+            </code></pre>
+
+            <p>
+              GitHub cannot claim:
+            </p>
+
+            <pre class="diagram"><code>
+Alice still works at ABC.
+            </code></pre>
+
+            <p>
+              Those are completely different assertions.
+            </p>
+
+            <h2>The Dangerous Shortcut</h2>
+
+            <p>
+              Many SaaS applications accidentally perform authorization using email addresses.
+            </p>
+
+            <pre><code class="language-python">
+if email.endswith("@abc.com"):
+    grant_access()
+            </code></pre>
+
+            <p>
+              This appears reasonable.
+            </p>
+
+            <p>
+              However, the authorization decision is now based on:
+            </p>
+
+            <pre class="diagram"><code>
+Historical Email Verification
+            </code></pre>
+
+            <p>
+              instead of:
+            </p>
+
+            <pre class="diagram"><code>
+Current Organizational Membership
+            </code></pre>
+
+            <p>
+              The trust boundary has shifted without anyone noticing.
+            </p>
+
+            <h2>Why SSO Alone Does Not Solve This</h2>
+
+            <p>
+              A common recommendation is:
+            </p>
+
+            <blockquote>
+              Enforce SSO.
+            </blockquote>
+
+            <p>
+              While useful, SSO alone does not solve the problem.
+            </p>
+
+            <pre class="diagram"><code>
+Google OAuth
+GitHub OAuth
+            </code></pre>
+
+            <p>
+              Both remain valid identity providers.
+            </p>
+
+            <p>
+              After offboarding:
+            </p>
+
+            <pre class="diagram"><code>
+Google Login
+    ↓
+Blocked
+
+GitHub Login
+    ↓
+Allowed
+            </code></pre>
+
+            <p>
+              The existence of SSO does not automatically invalidate other identity providers.
+            </p>
+
+            <p>
+              The SaaS must decide which provider is authoritative for authorization decisions.
+            </p>
+
+            <h2>The OAuth Identity Paradox</h2>
+
+            <p>
+              The most interesting observation is that email verification is often treated as a much
+              stronger signal than it actually is.
+            </p>
+
+            <p>
+              Many systems implicitly convert:
+            </p>
+
+            <pre class="diagram"><code>
+User verified email once.
+            </code></pre>
+
+            <p>
+              into:
+            </p>
+
+            <pre class="diagram"><code>
+User currently owns mailbox.
+            </code></pre>
+
+            <p>
+              and then further into:
+            </p>
+
+            <pre class="diagram"><code>
+User currently belongs to organization.
+            </code></pre>
+
+            <p>
+              Each conversion introduces additional assumptions.
+            </p>
+
+            <p>
+              Eventually, authorization decisions depend on claims that were never actually made by the
+              identity provider.
+            </p>
+
+            <h2>Conclusion</h2>
+
+            <p>
+              OAuth providers answer authentication questions.
+            </p>
+
+            <p>
+              Organizations answer employment questions.
+            </p>
+
+            <p>
+              SaaS platforms answer authorization questions.
+            </p>
+
+            <p>
+              Problems emerge when these responsibilities become mixed together.
+            </p>
+
+            <p>
+              The most dangerous OAuth issues rarely involve cryptography, token validation, or protocol
+              implementation flaws. Instead, they emerge when one system assumes another system is making
+              a stronger security assertion than it actually is.
+            </p>
+
+            <p>
+              The result is an identity paradox:
+            </p>
+
+            <pre class="diagram"><code>
+Authentication proves identity.
+
+Authorization requires trust.
+
+Email addresses sit somewhere in the middle.
+            </code></pre>
+
+            <p>
+              And that gray area is where some of the most interesting OAuth security discussions begin.
+            </p>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </body>
+</html>
